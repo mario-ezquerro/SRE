@@ -1,0 +1,121 @@
+volumes:
+  consul_data:
+
+networks:
+  observability-net:
+    driver: bridge
+
+
+x-resources: &resources
+  deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 250M
+
+
+
+services:
+  consul-agent:
+    image: hashicorp/consul:latest
+    container_name: consul-agent
+    hostname: consul-agent
+    restart: unless-stopped
+    ports:
+      - "8500:8500"  # API HTTP
+      - "8300:8300"
+      - "8300:8300/udp"
+      - "8301:8301"
+      - "8301:8301/udp"
+    volumes:
+      - consul_data:/consul/data
+    command: >
+      agent -join=$MASTER_IP -datacenter=dc1 -node=$HOSTNAME  -client=0.0.0.0 -bind=0.0.0.0 --advertise=$WORKER_IP
+    <<: *resources  # Reutiliza los límites de recursos
+    network_mode: bridge
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8500/v1/agent/self"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s    
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    hostname: node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    <<: *resources  # Reutiliza los límites de recursos
+    networks:
+      - observability-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:9100/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    hostname: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8000:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - observability-net
+
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    hostname: promtail
+    ports:
+      - "9080:9080"
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log
+      - ./promtail-config.yaml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    <<: *resources  # Reutiliza los límites de recursos
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:9080/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - observability-net
+
+

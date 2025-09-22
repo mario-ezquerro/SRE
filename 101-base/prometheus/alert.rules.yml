@@ -1,0 +1,97 @@
+groups:
+  - name: Node_Exporter_Alerts
+    rules:
+      # 🚨 Alerta: Uso alto de CPU en el nodo
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Uso alto de CPU en {{ $labels.instance }}"
+          description: "El uso de CPU en {{ $labels.instance }} ha superado el 80% durante más de 2 minutos."
+
+      # 🚨 Alerta: Memoria baja en el nodo
+      - alert: LowMemory
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memoria baja en {{ $labels.instance }}"
+          description: "La memoria disponible en {{ $labels.instance }} es menor al 10%."
+
+      # 🚨 Alerta: Disco casi lleno
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Espacio en disco bajo en {{ $labels.instance }}"
+          description: "El disco en {{ $labels.instance }} tiene menos del 10% de espacio disponible."
+
+  - name: cAdvisor_Alerts
+    rules:
+      # 🚨 Alerta: Uso alto de CPU en contenedor
+      - alert: ContainerHighCPU
+        expr: rate(container_cpu_usage_seconds_total{image!=""}[5m]) * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso alto de CPU en contenedor {{ $labels.name }}"
+          description: "El contenedor {{ $labels.name }} está usando más del 80% de CPU."
+
+      # 🚨 Alerta: Contenedor con uso de memoria excesivo
+      - alert: ContainerHighMemory
+        expr: (container_memory_usage_bytes{image!=""} / container_spec_memory_limit_bytes{image!=""}) * 100 > 90
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Uso excesivo de memoria en contenedor {{ $labels.name }}"
+          description: "El contenedor {{ $labels.name }} ha superado el 90% de su memoria asignada."
+
+      # 🚨 Alerta: Contenedor reiniciándose con frecuencia
+      - alert: ContainerFrequentRestarts
+        expr: increase(container_restart_count{image!=""}[5m]) > 3
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Reinicios frecuentes en contenedor {{ $labels.name }}"
+          description: "El contenedor {{ $labels.name }} se ha reiniciado más de 3 veces en los últimos 5 minutos."
+
+  
+  - name: Node_Exporter_Alerts_SystemLoad
+    rules:
+      # 🚨 Alerta: Alta carga del sistema en 1 minuto
+      - alert: HighSystemLoad1m
+        expr: node_load1 > (count(node_cpu_seconds_total{mode="user"}) * 1.5)
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta carga del sistema en 1 minuto en {{ $labels.instance }}"
+          description: "La carga del sistema en {{ $labels.instance }} ha superado el 150% del número de CPUs durante más de 2 minutos."
+
+      # 🚨 Alerta: Alta carga del sistema en 5 minutos (más severa)
+      - alert: HighSystemLoad5m
+        expr: node_load5 > (count(node_cpu_seconds_total{mode="user"}) * 2)
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Alta carga del sistema en 5 minutos en {{ $labels.instance }}"
+          description: "La carga del sistema en {{ $labels.instance }} ha superado el 200% del número de CPUs durante más de 5 minutos."
+
+      # 🚨 Alerta: Sobrecarga extrema del sistema en 15 minutos
+      - alert: CriticalSystemLoad
+        expr: node_load15 > (count(node_cpu_seconds_total{mode="user"}) * 3)
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Sobrecarga extrema en {{ $labels.instance }}"
+          description: "La carga del sistema en {{ $labels.instance }} ha superado el 300% del número de CPUs durante más de 10 minutos."          

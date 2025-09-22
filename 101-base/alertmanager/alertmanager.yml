@@ -1,0 +1,12 @@
+route:
+  receiver: 'email-notifications'
+
+receivers:
+  - name: 'email-notifications'
+    email_configs:
+      - to: 'notificaciones@fiware.app'
+        from: 'alertmanager@proyecto.org'
+        smarthost: 'mx.fiware.app:25'
+        #auth_username: 'user'
+        #auth_password: 'password'
+        require_tls: false
