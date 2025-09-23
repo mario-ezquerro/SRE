@@ -116,7 +116,7 @@ Fuentes y contenido relacionado
 
 
 
-
+```
 +---------------------------------------------------------------------------------+
 | Usuarios / Clientes Externos                                                    |
 +----------------------------------+----------------------------------------------+
@@ -152,20 +152,21 @@ Fuentes y contenido relacionado
 |--------| |--------| |--------|      +---------------------+
 | cAdvisr| | cAdvisr| | cAdvisr|      | Consul Template     |---+ (Genera Config)
 |--------| |--------| |--------|      +---------------------+   |
-| Promtail| |Promtail| |Promtail|                              |
-|--------| |--------| |--------|                              v
-| App Ctr| | App Ctr| | App Ctr| <-----------------------+  +-----------------+
-| (Vol.) | | (Vol.) | | (Vol.) | (Acceso a datos)        |  | Prometheus      |<-+ (Scrape Targets)
-+--------+ +--------+ +--------+                         |  |                 |  | (Alerts)
-    |          |          |                              |  +-----------------+  |
-    |          |          | (Mount)                      |      | (Metrics)   |  v
-    v          v          v                              |      v             +----------+
-+--------------------------+---------------------------+  |  +-----------------+ | Alertmgr |
-| Almacenamiento Compartido (NFS, GlusterFS, CephFS...) |  |  | Grafana         | +----------+
-+------------------------------------------------------+  |  |                 |   | (Notifications)
-                                                          |  +-----------------+   v (Email, Slack...)
+| Promtail| |Promtail| |Promtail|                               |
+|--------| |--------| |--------|                                v
+| App Ctr| | App Ctr| | App Ctr| <-----------------------+   +-----------------+
+| (Vol.) | | (Vol.) | | (Vol.) | (Acceso a datos)         |  | Prometheus      |<-+ (Scrape Targets)
++--------+ +--------+ +--------+                          |  |                 |       | (Alerts)
+    |          |          |                               |  +-----------------+       |
+    |          |          | (Mount)                       |         | (Metrics)   |    v
+    v          v          v                               |         v               +----------+
++--------------------------+---------------------------+  |  +-----------------+    | Alertmgr |
+| Almacenamiento Compartido (NFS, GlusterFS, CephFS...)|  |  | Grafana         |    +----------+
++------------------------------------------------------+  |  |                 |         | (Notifications)
+                                                          |  +-----------------+         v (Email, Slack...)
                                                           |      ^ (Logs)
                                                           |      |
                                                           |  +-----------------+
                                                           +--| Loki            |
                                                              +-----------------+
+```
