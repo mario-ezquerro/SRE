@@ -8,6 +8,16 @@ Here is the technical translation of the provided text, formatted for an IT envi
 
 -----
 
+
+101-base: For single-host deployment, primarily used for technology evaluation and testing purposes.
+
+101-cluster: For multi-host deployment, intended for production environments.
+
+Ajuste de Variables
+In both deployment types, it is mandatory to adjust the IP addresses and FQDN (Fully Qualified Domain Names) in the environment variables to match your specific setup.
+
+----
+
 ### **Adjusting the Configuration**
 
 ```
