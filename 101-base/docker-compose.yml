@@ -62,8 +62,8 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=user
       - GF_SECURITY_ADMIN_PASSWORD=password
-      - GF_AUTH_LDAP_ENABLED=true
-      - GF_AUTH_LDAP_CONFIG_FILE=/etc/grafana/provisioning/ldap.toml
+#     - GF_AUTH_LDAP_ENABLED=true
+#     - GF_AUTH_LDAP_CONFIG_FILE=/etc/grafana/provisioning/ldap.toml
     ports:
       - "3000:3000"
     networks:
